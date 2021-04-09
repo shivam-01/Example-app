@@ -24,32 +24,36 @@ class ItemsBloc extends Bloc<ItemsEvent, ItemsState> {
     ItemsEvent event,
   ) async* {
     if (event is GetItems) {
-      yield* _mapGetItemsToState(event);
-    } else if (event is UpdateItem) {
-      yield* _mapUpdateItemToState(event);
+      yield* _mapGetItemsToState();
+    } else if (event is ItemToggled) {
+      yield* _mapItemToggledToState(event);
     }
   }
 
-  Stream<ItemsState> _mapGetItemsToState(GetItems event) async* {
+  Stream<ItemsState> _mapGetItemsToState() async* {
     yield ItemsLoading();
+    yield* _loadItems();
+  }
+
+  Stream<ItemsState> _loadItems() async* {
     try {
       final _items = await itemRepository.loadItems();
-      yield ItemsLoaded(items: _items);
-      print('Yielded');
+      yield ItemsLoaded(items: List.from(_items));
     } catch (_) {
       yield ItemsFailure();
     }
   }
 
-  Stream<ItemsState> _mapUpdateItemToState(UpdateItem event) async* {
+  Stream<ItemsState> _mapItemToggledToState(ItemToggled event) async* {
     try {
-      _updateRepositoryItems(event.item);
-      if (event.item.active) {
-        cartBloc.add(ShowItems());
+      final item = event.item;
+      _updateRepositoryItems(item.copyWith(active: !item.active));
+      if (item.active) {
+        cartBloc.add(RemoveItem(itemId: item.id));
       } else {
-        cartBloc.add(RemoveItem(itemId: event.item.id));
+        cartBloc.add(ShowItems());
       }
-      yield* _mapGetItemsToState(GetItems());
+      yield* _loadItems();
     } catch (_) {
       yield ItemsFailure();
     }

@@ -3,6 +3,7 @@ import 'package:demo/bloc/items/items_bloc.dart';
 import 'package:demo/get_it.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'app_bloc_observer.dart';
 import 'get_it.dart' as di;
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,7 @@ import 'home_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Bloc.observer = AppBlocObserver();
   di.init();
   runApp(MyApp());
 }

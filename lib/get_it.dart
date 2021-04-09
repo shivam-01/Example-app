@@ -8,9 +8,10 @@ final getIt = GetIt.instance;
 Future<void> init() async {
   // Bloc
 
-  getIt.registerLazySingleton<CartBloc>(() => CartBloc(itemRepository: getIt()));
+  getIt
+      .registerLazySingleton<CartBloc>(() => CartBloc(itemRepository: getIt()));
 
-  getIt.registerFactory(() => ItemsBloc(
+  getIt.registerLazySingleton(() => ItemsBloc(
         itemRepository: getIt(),
         cartBloc: getIt(),
       ));
