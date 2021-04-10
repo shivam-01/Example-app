@@ -12,43 +12,28 @@ part 'cart_state.dart';
 class CartBloc extends Bloc<CartEvent, CartState> {
   final ItemRepository itemRepository;
 
-  CartBloc({@required this.itemRepository}) : super(CartLoading());
+  CartBloc({@required this.itemRepository}) : super(const CartLoading());
 
   @override
   Stream<CartState> mapEventToState(
     CartEvent event,
   ) async* {
     if (event is ShowItems) {
-      yield* _mapShowItemsToState(event);
+      yield* _loadCartItems();
     } else if (event is RemoveItem) {
-      yield* _mapRemoveItemToState(event);
+      yield* _loadCartItems();
     }
   }
 
-  Stream<CartState> _mapShowItemsToState(ShowItems event) async* {
+  Stream<CartState> _loadCartItems() async* {
     try {
       final _selectedItems = await itemRepository.getSelectedItems;
 
-      if (_selectedItems.isNotEmpty) {
+      if (_selectedItems.isEmpty) {
+        yield CartEmpty();
+      } else {
         final data = ItemData(items: _selectedItems);
-
         yield CartLoaded(itemData: data);
-      } else {
-        yield CartLoading();
-      }
-    } catch (_) {
-      yield CartFailure();
-    }
-  }
-
-  Stream<CartState> _mapRemoveItemToState(RemoveItem event) async* {
-    try {
-      final _selectedSounds = await itemRepository.getSelectedItems;
-
-      if (_selectedSounds.isEmpty) {
-        yield CartLoading();
-      } else {
-        yield* _mapShowItemsToState(ShowItems());
       }
     } catch (_) {
       yield CartFailure();

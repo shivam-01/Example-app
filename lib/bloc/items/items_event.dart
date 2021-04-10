@@ -9,10 +9,10 @@ abstract class ItemsEvent extends Equatable {
 
 class GetItems extends ItemsEvent {}
 
-class UpdateItem extends ItemsEvent {
+class ItemToggled extends ItemsEvent {
   final Item item;
 
-  const UpdateItem({
+  const ItemToggled({
     @required this.item,
   }) : assert(item != null);
 

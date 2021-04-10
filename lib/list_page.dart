@@ -1,18 +1,26 @@
 import 'package:demo/bloc/items/items_bloc.dart';
-import 'package:demo/get_it.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'item_model.dart';
+import 'bloc/cart/cart_bloc.dart';
+import 'shared/shared.dart';
 
-class ListPage extends StatefulWidget {
-  final List<Item> items;
+class CartPage extends StatelessWidget {
+  const CartPage._({Key key}) : super(key: key);
 
-  const ListPage({Key key, this.items}) : super(key: key);
   @override
-  _PlayerScreenState createState() => _PlayerScreenState();
+  Widget build(BuildContext context) {
+    return const _Cart();
+  }
+
+  static Route route() => MaterialPageRoute(
+        builder: (_) => const CartPage._(),
+      );
 }
 
-class _PlayerScreenState extends State<ListPage> {
+class _Cart extends StatelessWidget {
+  const _Cart({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -28,44 +36,65 @@ class _PlayerScreenState extends State<ListPage> {
           padding: const EdgeInsets.all(12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: const [
               Expanded(
-                child: ListView.separated(
-                  itemCount: widget.items.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      Divider(),
-                  itemBuilder: (BuildContext context, int index) {
-                    return ListTile(
-                      trailing: IconButton(
-                        icon: Icon(
-                          Icons.close_rounded,
-                          color: Colors.black,
-                        ),
-                        onPressed: () {
-                          getIt<ItemsBloc>().add(UpdateItem(
-                            item: widget.items.elementAt(index).copyWith(
-                                active: !widget.items.elementAt(index).active),
-                          ));
-
-                          setState(() {
-                            widget.items.removeAt(index);
-                          });
-                          if (widget.items.isEmpty) {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                      title: Text(
-                        widget.items.elementAt(index).title,
-                      ),
-                    );
-                  },
-                ),
+                child: _CartList(),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+class _CartList extends StatelessWidget {
+  const _CartList({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<CartBloc, CartState>(
+      listener: (context, state) {
+        if (state is CartEmpty) {
+          Navigator.pop(context);
+        }
+      },
+      builder: (context, state) {
+        if (state is CartFailure) {
+          return const Center(
+            child: Text('Oops!'),
+          );
+        }
+        if (state is CartEmpty) {
+          return const Empty();
+        }
+        if (state is CartLoaded) {
+          final items = state.itemData.items;
+          return ListView.separated(
+            itemCount: items.length,
+            separatorBuilder: (BuildContext context, int index) => Divider(),
+            itemBuilder: (BuildContext context, int index) {
+              final item = items[index];
+              return ListTile(
+                trailing: IconButton(
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    context.read<ItemsBloc>().add(ItemToggled(item: item));
+                  },
+                ),
+                title: Text(
+                  item.title,
+                ),
+              );
+            },
+          );
+        }
+
+        return const Loader();
+      },
     );
   }
 }

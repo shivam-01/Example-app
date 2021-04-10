@@ -5,6 +5,8 @@ import 'package:demo/list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'shared/shared.dart';
+
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -69,26 +71,17 @@ class CartButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<CartBloc, CartState>(
-      // ignore: missing_return
       builder: (context, state) {
-        if (state is CartLoading) {
-          return SizedBox.shrink();
-        } else if (state is CartLoaded) {
+        if (state is CartLoaded) {
           print('Cart Loaded');
           return TextButton(
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) {
-                  return ListPage(
-                    items: state.itemData.items,
-                  );
-                }),
-              );
+              Navigator.push(context, CartPage.route());
             },
             child: Text('Go To Cart'),
           );
-        } else if (state is CartFailure) {
+        }
+        if (state is CartFailure) {
           return Center(
             child: Text(
               'Unexpected Failure, Cannot Load Cart',
@@ -96,6 +89,7 @@ class CartButton extends StatelessWidget {
             ),
           );
         }
+        return const Empty();
       },
     );
   }
